@@ -10,6 +10,7 @@ public class Player extends Entity {
     private boolean isMovingLeft;
     private boolean isMovingRight;
     private double moveX;
+    private long lastBullet;
 
     /**
      * Constructor providing default player image
@@ -57,4 +58,13 @@ public class Player extends Entity {
     public void setMoveX(double moveX) {
         this.moveX = moveX;
     }
+
+    public long getLastBullet() {
+        return lastBullet;
+    }
+
+    public void setLastBullet(long bulletTimer) {
+        this.lastBullet = bulletTimer;
+    }
+
 }

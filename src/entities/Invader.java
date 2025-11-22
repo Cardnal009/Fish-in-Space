@@ -25,13 +25,6 @@ public class Invader extends Entity {
 
     @Override
     public void update(double delta) {
-
-        if (getX() <= 0) {
-            setX(0);
-        }
-        if (getX() > GameController.WIDTH - 32) {
-            setX(GameController.WIDTH - 32);
-        }
     }
 
     public void setInvertImage(boolean invertImage) {

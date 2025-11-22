@@ -97,6 +97,30 @@ public class InvaderController {
         }
     }
 
+    public int getTotalInvaders() {
+        return rowsNum * colsNum;
+    }
+
+    public int countAlive() {
+        int alive = 0;
+        for (Invader[] invaderRow : invaderList) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive())
+                    alive++;
+            }
+        }
+        return alive;
+    }
+
+    public double calculateUpdateTime() {
+        int invadersAlive = countAlive();
+        int totalInvaders = getTotalInvaders();
+        double baseRate = .6;
+        double updateRate = baseRate * ((double) invadersAlive / totalInvaders);
+
+        return Math.max(updateRate, 0.1);
+    }
+
     // getters and setters
 
     public Invader[][] getInvaderList() {

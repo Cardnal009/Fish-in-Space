@@ -9,10 +9,12 @@ public class Bullet extends Entity {
 
     private double moveY; // used to move Y value of bullet in update
     private Image bulletImage;
+    private Entity owner;
 
-    public Bullet(double x, double y, int width, int height, Image image) {
+    public Bullet(double x, double y, int width, int height, Image image, Entity owner) {
         super(x, y, width, height, image);
         this.bulletImage = image;
+        this.owner = owner;
     }
 
 

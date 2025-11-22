@@ -1,6 +1,7 @@
 package controller;
 
 import entities.Bullet;
+import entities.Entity;
 import entities.Invader;
 import entities.Player;
 import javafx.animation.AnimationTimer;
@@ -13,6 +14,9 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+
 import java.util.ArrayList;
 
 public class GameController {
@@ -24,7 +28,6 @@ public class GameController {
     private AnimationTimer gameLoop; // AnimationTimer used for main game loop
     private Player player; // the player
     private double invaderUpdateTimer = 0;
-    private double stepTimer = 0.5;
     private InvaderController invaderController;
     ArrayList<Bullet> bulletList = new ArrayList<>();
     private int currentLevel = 1;
@@ -96,8 +99,9 @@ public class GameController {
             }
         }
         bulletList.removeAll(bulletsToRemove);
-        System.out.println(delta);
         invaderUpdateTimer += delta;
+
+        double stepTimer = invaderController.calculateUpdateTime();
         if (invaderUpdateTimer > stepTimer) {
             invaderUpdateTimer -= stepTimer;
             invaderController.updateAll();
@@ -140,9 +144,9 @@ public class GameController {
         }
 
         if (levelComplete) {
-            gc.setFill(javafx.scene.paint.Color.YELLOW);
-            gc.setFont(new javafx.scene.text.Font("Arial", 40));
-            gc.fillText("Level Complete", canvas.getWidth() / 2 - 120, canvas.getHeight() / 2);
+            gc.setFill(Color.YELLOW);
+            gc.setFont(new Font("Arial", 40));
+            gc.fillText("Level Complete", canvas.getWidth() / 2 - 140, canvas.getHeight() / 2);
         }
     }
 
@@ -170,10 +174,22 @@ public class GameController {
             canvas.setLayoutY(canvasY + ((rootH - scaledH)) / 2);
     }
 
-    private void fireProjectile() {
-        Bullet bullet = new Bullet(player.getX() +((double) player.getWidth() / 2), player.getY(), 3, 8, null);
+    private void fireProjectile(Entity entity) {
+        Bullet bullet = null;
+        if (entity instanceof Player) {
+            if (System.currentTimeMillis() - player.getLastBullet() < 800) { // player can only fire ever .8 seconds
+                return;
+            }
+            player.setLastBullet(System.currentTimeMillis());
+            bullet = new Bullet(player.getX() + ((double) player.getWidth() / 2), player.getY(), 3, 8, null, entity);
+            bullet.setMoveY(-120);
+        }
+        if (entity instanceof Invader) {
+            bullet = new Bullet(entity.getX() + ((double) player.getWidth() / 2), entity.getY(), 3, 8, null, entity);
+            bullet.setMoveY(+120);
+        }
+
         bulletList.add(bullet);
-        bullet.setMoveY(-120);
     }
 
     /**
@@ -212,7 +228,7 @@ public class GameController {
                         break;
 
                     case SPACE:
-                        fireProjectile();
+                        fireProjectile(player);
                         break;
 
                     case ESCAPE:
@@ -270,11 +286,6 @@ public class GameController {
         int rows = 4 + (currentLevel - 1);
         int cols = 5 + (currentLevel - 1);
         invaderController.spawnInvaders(rows, cols);
-        
-        stepTimer = stepTimer * 0.8;
-        if (stepTimer < 0.1) {
-            stepTimer = 0.1;
-        }
     }
 
 }
