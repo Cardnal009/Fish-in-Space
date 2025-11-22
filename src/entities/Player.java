@@ -1,0 +1,60 @@
+package entities;
+
+import controller.GameController;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+
+public class Player extends Entity {
+
+
+    private boolean isMovingLeft;
+    private boolean isMovingRight;
+    private double moveX;
+
+    /**
+     * Constructor providing default player image
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    public Player(double x, double y, int width, int height) {
+        super(x, y, width, height, new Image("assets/invaders/invader.png"));
+    }
+
+    @Override
+    public void draw(GraphicsContext gc) {
+        gc.drawImage(getImage(), getX(), getY());
+    }
+
+    @Override
+    public void update(double delta) {
+        setX(getX() + (moveX * delta));
+        if (getX() <= 0) {
+            setX(0);
+        }
+        if (getX() > GameController.WIDTH - getWidth()) {
+            setX(GameController.WIDTH - getWidth());
+        }
+    }
+
+    public boolean isMovingLeft() {
+        return isMovingLeft;
+    }
+
+    public void setMovingLeft(boolean movingLeft) {
+        isMovingLeft = movingLeft;
+    }
+
+    public boolean isMovingRight() {
+        return isMovingRight;
+    }
+
+    public void setMovingRight(boolean movingRight) {
+        isMovingRight = movingRight;
+    }
+
+    public void setMoveX(double moveX) {
+        this.moveX = moveX;
+    }
+}

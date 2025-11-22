@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="500" minWidth="440" prefHeight="500.0" prefWidth="440.0" style="-fx-background-color: grey;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.GameController">
+   <children>
+      <Canvas fx:id="canvas" height="500.0" width="440.0" />
+   </children>
+</AnchorPane>
