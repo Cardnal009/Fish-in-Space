@@ -27,6 +27,10 @@ public class GameController {
     private double stepTimer = 0.5;
     private InvaderController invaderController;
     ArrayList<Bullet> bulletList = new ArrayList<>();
+    private int currentLevel = 1;
+    private boolean levelComplete = false;
+    private double levelCompleteTimer = 0;
+    private double LEVEL_COMPLETE_DELAY = 2.0;
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
 
@@ -74,6 +78,14 @@ public class GameController {
      * @param delta time in seconds since the last update
      */
     private void update(double delta) {
+        if (levelComplete) {
+            levelCompleteTimer += delta;
+            if (levelCompleteTimer >= LEVEL_COMPLETE_DELAY) {
+                startNewLevel();
+            }
+            return;
+        }
+
         player.update(delta);
         ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
         for (Bullet bullet : bulletList) {
@@ -84,6 +96,7 @@ public class GameController {
             }
         }
         bulletList.removeAll(bulletsToRemove);
+        System.out.println(delta);
         invaderUpdateTimer += delta;
         if (invaderUpdateTimer > stepTimer) {
             invaderUpdateTimer -= stepTimer;
@@ -100,6 +113,11 @@ public class GameController {
                     }
                 }
             }
+        }
+
+        if (checkAllInvadersDead()) {
+            levelComplete = true;
+            levelCompleteTimer = 0;
         }
     }
 
@@ -119,6 +137,12 @@ public class GameController {
                     invader.draw(gc);
                 }
             }
+        }
+
+        if (levelComplete) {
+            gc.setFill(javafx.scene.paint.Color.YELLOW);
+            gc.setFont(new javafx.scene.text.Font("Arial", 40));
+            gc.fillText("Level Complete", canvas.getWidth() / 2 - 120, canvas.getHeight() / 2);
         }
     }
 
@@ -224,6 +248,33 @@ public class GameController {
             }
         });
 
+    }
+
+    private boolean checkAllInvadersDead() {
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void startNewLevel() {
+        currentLevel++;
+        levelComplete = false;
+        levelCompleteTimer = 0;
+        bulletList.clear();
+        
+        int rows = 4 + (currentLevel - 1);
+        int cols = 5 + (currentLevel - 1);
+        invaderController.spawnInvaders(rows, cols);
+        
+        stepTimer = stepTimer * 0.8;
+        if (stepTimer < 0.1) {
+            stepTimer = 0.1;
+        }
     }
 
 }
