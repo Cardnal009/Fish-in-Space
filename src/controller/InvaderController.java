@@ -10,7 +10,7 @@ public class InvaderController {
     private int rowsNum;
     private int colsNum;
     private Direction direction = Direction.LEFT;
-    private static final int XSTEP = 20;
+    private int invaderSpeed = 20;
 
     private enum Direction {
         LEFT, RIGHT
@@ -61,7 +61,7 @@ public class InvaderController {
 
         if (direction == Direction.LEFT) {
             for (int row = 0; row < rowsNum; row++) {
-                if (invaderList[row][leftMostColumn].getX() - XSTEP < 0) {
+                if (invaderList[row][leftMostColumn].getX() - invaderSpeed < 0) {
                     hitLeftWall = true;
                     break;
                 }
@@ -70,7 +70,7 @@ public class InvaderController {
 
         if (direction == Direction.RIGHT) {
             for (int row = 0; row < rowsNum; row++) {
-                if (invaderList[row][rightMostColumn].getX() + XSTEP > GameController.WIDTH - invaderList[row][rightMostColumn].getWidth()) {
+                if (invaderList[row][rightMostColumn].getX() + invaderSpeed > GameController.WIDTH - invaderList[row][rightMostColumn].getWidth()) {
                     hitRightWall = true;
                     break;
                 }
@@ -87,7 +87,7 @@ public class InvaderController {
             return;
         }
 
-        int xChange = direction == Direction.LEFT ? -XSTEP : XSTEP;
+        int xChange = direction == Direction.LEFT ? -invaderSpeed : invaderSpeed;
 
         for (Invader[] invaderRow : invaderList) {
             for (Invader invader: invaderRow) {
@@ -105,6 +105,14 @@ public class InvaderController {
 
     public void setInvaderList(Invader[][] invaderList) {
         this.invaderList = invaderList;
+    }
+
+    public int getInvaderSpeed() {
+        return invaderSpeed;
+    }
+
+    public void setInvaderSpeed(int invaderSpeed) {
+        this.invaderSpeed = invaderSpeed;
     }
 
 }
