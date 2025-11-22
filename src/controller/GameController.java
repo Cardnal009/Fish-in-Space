@@ -31,6 +31,7 @@ public class GameController {
     private boolean levelComplete = false;
     private double levelCompleteTimer = 0;
     private double LEVEL_COMPLETE_DELAY = 2.0;
+    private boolean gameOver = false; // created gameOver field for when invaders get to the bottom of the screen
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
 
@@ -78,6 +79,11 @@ public class GameController {
      * @param delta time in seconds since the last update
      */
     private void update(double delta) {
+        
+        if (gameOver) {
+            return; // Doesn't update after game is over
+        }
+        
         if (levelComplete) {
             levelCompleteTimer += delta;
             if (levelCompleteTimer >= LEVEL_COMPLETE_DELAY) {
@@ -114,6 +120,14 @@ public class GameController {
                 }
             }
         }
+        
+        // Added a check for if invaders have reached the players position
+        if (checkGameOver()) {
+            gameOver = true;
+            gameLoop.stop();
+            System.out.println("GAME OVER");
+            return;
+        }
 
         if (checkAllInvadersDead()) {
             levelComplete = true;
@@ -143,6 +157,13 @@ public class GameController {
             gc.setFill(javafx.scene.paint.Color.YELLOW);
             gc.setFont(new javafx.scene.text.Font("Arial", 40));
             gc.fillText("Level Complete", canvas.getWidth() / 2 - 120, canvas.getHeight() / 2);
+        }
+        
+        // Added a display for when the game is over
+        if (gameOver) {
+            gc.setFill(javafx.scene.paint.Color.RED);
+            gc.setFont(new javafx.scene.text.Font("Arial", 40));
+            gc.fillText("GAME OVER", canvas.getWidth() / 2 - 120, canvas.getHeight() / 2);
         }
     }
 
@@ -248,6 +269,22 @@ public class GameController {
             }
         });
 
+    }
+
+    // Added a method to check if the game is over
+    private boolean checkGameOver() {
+        // Returns true for game over if invaders get to players Y position
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive()) {
+                    // Checks the position of invaders if they are alive
+                    if (invader.getY() + invader.getHeight() >= player.getY()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private boolean checkAllInvadersDead() {
