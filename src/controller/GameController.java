@@ -84,7 +84,6 @@ public class GameController {
             }
         }
         bulletList.removeAll(bulletsToRemove);
-        System.out.println(delta);
         invaderUpdateTimer += delta;
         if (invaderUpdateTimer > stepTimer) {
             invaderUpdateTimer -= stepTimer;
