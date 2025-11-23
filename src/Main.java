@@ -14,7 +14,7 @@ public class Main extends Application {
             Scene scene = new Scene(root);
             stage.setMinWidth(454);
             stage.setMinHeight(540);
-            stage.setTitle("SpaceInvader");
+            stage.setTitle("Fish in Space");
             stage.setScene(scene);
             stage.show();
         }
