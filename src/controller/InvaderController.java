@@ -49,8 +49,8 @@ public class InvaderController {
     }
 
     public void updateAll() {
-        if (getLeftmostColumn() == -1 || getRightMostColumn() == -1) {
-            return; // TODO: add game ending logic
+        if (getLeftmostColumn() == -1 || getRightMostColumn() == -1) { // if every column is destroyed
+            return;
         }
 
         int leftMostColumn = getLeftmostColumn();

@@ -67,7 +67,7 @@ public class GameController {
             @Override
             public void handle(long now) {
                 if (lastTime > 0) {
-                    double delta = (double) (now - lastTime) / 1000000000; // convert to seconds (should be 1 frame per second 60fps)
+                    double delta = (double) (now - lastTime) / 1000000000; // amount of time since last handle was called converted to seconds (target is 60 frames per second)
                     update(delta);   // update game logic
                     render();   // draw everything
                 }
@@ -106,7 +106,6 @@ public class GameController {
         }
         bulletList.removeAll(bulletsToRemove);
         invaderUpdateTimer += delta;
-
         double stepTimer = invaderController.calculateUpdateTime();
         if (invaderUpdateTimer > stepTimer) {
             invaderUpdateTimer -= stepTimer;

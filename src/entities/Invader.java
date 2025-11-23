@@ -12,6 +12,7 @@ public class Invader extends Entity {
         super(x, y, width, height, image);
     }
 
+    @Override
     public void draw(GraphicsContext gc) {
         if (invertImage) {
             gc.save(); // save current state
