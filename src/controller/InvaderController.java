@@ -49,7 +49,7 @@ public class InvaderController {
     }
 
     public void updateAll() {
-        if (getLeftmostColumn() == -1 || getRightMostColumn() == -1) { // if every column is destroyed
+        if (getLeftmostColumn() == -1 || getRightMostColumn() == -1) { // if every column is destroyed stop updateAll method
             return;
         }
 
