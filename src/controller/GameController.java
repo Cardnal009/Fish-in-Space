@@ -186,6 +186,11 @@ public class GameController {
             }
         }
 
+        // Display score in top right corner
+        gc.setFill(Color.WHITE);
+        gc.setFont(new Font("Arial", 20));
+        gc.fillText("Score: " + score, canvas.getWidth() - 120, 25);
+
         if (levelComplete) {
             gc.setFill(Color.YELLOW);
             gc.setFont(new Font("Arial", 40));
