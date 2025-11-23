@@ -198,6 +198,16 @@ public class GameController {
             }
         }
 
+        // Kill invaders that have gone off the bottom of the screen
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive() && invader.getY() > HEIGHT) {
+                    invader.setAlive(false);
+                    System.out.println("Invader escaped off screen!");
+                }
+            }
+        }
+
         if (checkAllInvadersDead()) {
             levelComplete = true;
             levelCompleteTimer = 0;
@@ -247,6 +257,10 @@ public class GameController {
         gc.setFont(new Font("Arial", 20));
         gc.fillText("Score: " + score, canvas.getWidth() - 120, 25);
 
+        // Draw shield icons in bottom left corner
+        powerUpManager.drawShields(gc, canvas.getHeight());
+
+
         if (levelComplete) {
             gc.setFill(Color.YELLOW);
             gc.setFont(new Font("Arial", 40));
@@ -264,7 +278,13 @@ public class GameController {
         if (gameOver) {
             gc.setFill(Color.RED);
             gc.setFont(new Font("Arial", 40));
-            gc.fillText("GAME OVER", canvas.getWidth() / 2 - 130, canvas.getHeight() / 2 - 50);
+            gc.fillText("GAME OVER", canvas.getWidth() / 2 - 120, canvas.getHeight() / 2 - 20);
+
+            // Options for user to either continue or quit the game
+            gc.setFill(Color.WHITE);
+            gc.setFont(new Font("Arial", 18));
+            gc.fillText("Press ENTER to Continue", canvas.getWidth() / 2 - 100, canvas.getHeight() / 2 + 20);
+            gc.fillText("Press ESC to Quit", canvas.getWidth() / 2 - 70, canvas.getHeight() / 2 + 50);
 
             gc.setFill(Color.WHITE);
             gc.setFont(new Font("Arial", 40));
@@ -284,7 +304,7 @@ public class GameController {
             }
         }
     }
-
+    
     /**
      * Scales and centers the game when the application is resized
      */
@@ -370,6 +390,11 @@ public class GameController {
                     case ENTER:
                         if (startScreen) {
                             startScreen = false; // leaves start screen
+                            break;
+                        }
+                        if (gameOver) {
+                            restartGame(); // "ENTER" restarts game at gameover
+                            break;
                         }
                         break;
 
@@ -396,6 +421,9 @@ public class GameController {
                         break;
 
                     case ESCAPE:
+                        if (gameOver) {
+                            System.exit(0);
+                        }
                         break;
                 }
             }
@@ -439,22 +467,6 @@ public class GameController {
 
     }
 
-    // Added a method to check if the game is over
-    private boolean checkGameOver() {
-        // Returns true for game over if invaders get to players Y position
-        for (Invader[] invaderRow : invaderController.getInvaderList()) {
-            for (Invader invader : invaderRow) {
-                if (invader.isAlive()) {
-                    // Checks the position of invaders if they are alive
-                    if (invader.getY() + invader.getHeight() >= player.getY()) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     private boolean checkAllInvadersDead() {
         for (Invader[] invaderRow : invaderController.getInvaderList()) {
             for (Invader invader : invaderRow) {
@@ -464,6 +476,32 @@ public class GameController {
             }
         }
         return true;
+    }
+
+    // Method for if user chooses to continue in game over screen
+    private void restartGame() {
+
+        // Reinitialize game to start-of-game state
+        gameOver = false;
+        paused = false;
+        startScreen = false;
+        currentLevel = 1;
+        levelComplete = false;
+        levelCompleteTimer = 0;
+        score = 0;
+        bulletList.clear();
+        invaderUpdateTimer = 0;
+
+        // Reset player and powerups
+        powerUpManager = new PowerUpManager();
+        player = new Player(canvas.getWidth() / 2 - 16, canvas.getHeight() - 32, 32, 32, powerUpManager);
+
+        // Reset invaders to first level rows and columns
+        invaderController = new InvaderController();
+        invaderController.spawnInvaders(4, 5);
+
+        // Resume game from beginning
+        gameLoop.start();
     }
 
     private void startNewLevel() {
