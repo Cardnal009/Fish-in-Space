@@ -1,6 +1,7 @@
 package entities;
 
 import controller.GameController;
+import controller.PowerUpManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
@@ -11,6 +12,7 @@ public class Player extends Entity {
     private boolean isMovingRight;
     private double moveX;
     private long lastBullet;
+    private PowerUpManager powerUpManager;
 
     /**
      * Constructor providing default player image
@@ -18,9 +20,11 @@ public class Player extends Entity {
      * @param y
      * @param width
      * @param height
+     * @param powerUpManager
      */
-    public Player(double x, double y, int width, int height) {
+    public Player(double x, double y, int width, int height, PowerUpManager powerUpManager) {
         super(x, y, width, height, new Image("assets/invaders/invader.png"));
+        this.powerUpManager = powerUpManager;
     }
 
     @Override
@@ -65,6 +69,15 @@ public class Player extends Entity {
 
     public void setLastBullet(long bulletTimer) {
         this.lastBullet = bulletTimer;
+    }
+
+    public PowerUpManager getPowerUpManager() {
+        return powerUpManager;
+    }
+
+    public boolean takeDamage() {
+        // Returns false if shield absorbed the hit, true if player takes damage
+        return !powerUpManager.useShield();
     }
 
 }

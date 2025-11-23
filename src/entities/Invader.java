@@ -7,6 +7,7 @@ import javafx.scene.image.Image;
 public class Invader extends Entity {
 
     private boolean invertImage = true;
+    private boolean hasPassedPlayer = false;
 
     public Invader(double x, double y, int width, int height, Image image) {
         super(x, y, width, height, image);
@@ -31,5 +32,12 @@ public class Invader extends Entity {
         this.invertImage = invertImage;
     }
 
+    public boolean hasPassedPlayer() {
+        return hasPassedPlayer;
+    }
+
+    public void setHasPassedPlayer(boolean hasPassedPlayer) {
+        this.hasPassedPlayer = hasPassedPlayer;
+    }
 
 }
