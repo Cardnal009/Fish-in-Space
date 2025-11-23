@@ -165,8 +165,8 @@ public class GameController {
         
         // Added a display for when the game is over
         if (gameOver) {
-            gc.setFill(javafx.scene.paint.Color.RED);
-            gc.setFont(new javafx.scene.text.Font("Arial", 40));
+            gc.setFill(Color.RED);
+            gc.setFont(new Font("Arial", 40));
             gc.fillText("GAME OVER", canvas.getWidth() / 2 - 120, canvas.getHeight() / 2);
         }
     }
