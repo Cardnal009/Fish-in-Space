@@ -364,7 +364,9 @@ public class GameController {
         invaderController.spawnInvaders(rows, cols);
         
         // Keep power-ups between levels
-        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges());
+        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()  
+                           + ", Speed: " + String.format("%.0f%%", powerUpManager.getSpeedMultiplier() * 100) 
+                           + ", Fire Rate: " + String.format("%.0f%%", powerUpManager.getFireRateMultiplier() * 100));
     }
 
 }
