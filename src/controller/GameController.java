@@ -129,6 +129,16 @@ public class GameController {
             }
         }
         
+        // Kill invaders that have gone off the bottom of the screen
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive() && invader.getY() > HEIGHT) {
+                    invader.setAlive(false);
+                    System.out.println("Invader escaped off screen!");
+                }
+            }
+        }
+        
         // Added a check for if invaders have reached the players position
         if (checkGameOver() && !invadersReachedPlayer) {
             invadersReachedPlayer = true; // Mark that we've triggered this
