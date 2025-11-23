@@ -1,6 +1,9 @@
 
 package controller;
 
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+
 public class PowerUpManager {
 
     private int killCount = 0;
@@ -18,6 +21,23 @@ public class PowerUpManager {
     private static final double MIN_FIRE_RATE = 0.4; // Cap at 60% reduction
     private static final double SPEED_INCREASE = 0.18; // 18% increase per power-up
     private static final double MAX_SPEED_MULTIPLIER = 2.5; // Cap speed increase
+    private static final int MAX_SHIELDS = 3; // Cap the amount of shields to 3
+
+    private final Image shields = new Image("assets/shields.png");
+
+    // Created shield images that will pop up everytime the power up is used
+    public void drawShields(GraphicsContext gc, double canvasHeight) {
+        double iconSize = 24;
+
+        // Bottom-left corner
+        double startX = 10;
+        double startY = canvasHeight - iconSize - 10;
+
+        for (int i = 0; i < shieldCharges; i++) {
+            double x = startX + i * (iconSize + 5);
+            gc.drawImage(shields, x, startY, iconSize, iconSize);
+        }
+    }
 
     public void registerKill() {
         killCount++;
@@ -40,8 +60,11 @@ public class PowerUpManager {
             speedMultiplier = Math.min(MAX_SPEED_MULTIPLIER, speedMultiplier + SPEED_INCREASE);
             System.out.println("Power-Up: Speed Boost! (Speed: " + String.format("%.0f%%", speedMultiplier * 100) + ")");
         } else {
-            shieldCharges++;
-            System.out.println("Power-Up: Shield! (Charges: " + shieldCharges + ")");
+            // Changed to check for max shield usage
+            if (shieldCharges < MAX_SHIELDS) {
+                shieldCharges++;
+                System.out.println("Power-Up: Shield! (Charges: " + shieldCharges + ")");
+            }
         }
     }
 
