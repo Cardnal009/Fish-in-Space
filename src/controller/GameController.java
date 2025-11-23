@@ -36,7 +36,9 @@ public class GameController {
     private double LEVEL_COMPLETE_DELAY = 2.0;
     private boolean gameOver = false; // created gameOver field for when invaders get to the bottom of the screen
     private PowerUpManager powerUpManager;
-    private int score = 0;
+    private boolean startScreen = true;   // created startScreen field
+    private boolean paused = false; // added field for a pause and unpause feature
+
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
 
@@ -86,6 +88,12 @@ public class GameController {
      */
     private void update(double delta) {
         
+        if (startScreen) { // Doesn't update when on start screen
+            return;
+        }
+        if (paused) { // Doesn't update when paused
+            return;
+        }
         if (gameOver) {
             return; // Doesn't update after game is over
         }
@@ -124,7 +132,6 @@ public class GameController {
                         invader.setAlive(false);
                         bullet.setAlive(false);
                         powerUpManager.registerKill();
-                        score += 5;
                     }
                 }
             }
@@ -164,7 +171,6 @@ public class GameController {
         if (checkAllInvadersDead()) {
             levelComplete = true;
             levelCompleteTimer = 0;
-            score += 100;
         }
     }
 
@@ -174,6 +180,25 @@ public class GameController {
     private void render() {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         gc.drawImage(background, 0, 0, canvas.getWidth(), canvas.getHeight());
+
+        // Displays start screen
+        if (startScreen) {
+            gc.setFill(javafx.scene.paint.Color.WHITE);
+
+            // Title (wasn't sure what we were naming it tbh feel free to change)
+            gc.setFont(new javafx.scene.text.Font("Arial", 48));
+            gc.fillText("FISH IN SPACE", canvas.getWidth() / 2 - 170, canvas.getHeight() / 2 - 60);
+
+            // Press "ENTER" to start game
+            gc.setFont(new javafx.scene.text.Font("Arial", 24));
+            gc.fillText("Press ENTER to Start", canvas.getWidth() / 2 - 125, canvas.getHeight() / 2 - 10);
+
+            // Instructions
+            gc.setFont(new javafx.scene.text.Font("Arial", 10));
+            gc.fillText("Arrows: Move  |  SPACE: Shoot  |  P: Pause", canvas.getWidth() / 2 - 105, canvas.getHeight() / 2 + 25);
+            return;
+        }
+        
         player.draw(gc);
         for (Bullet bullet : bulletList) {
             bullet.draw(gc);
@@ -186,15 +211,17 @@ public class GameController {
             }
         }
 
-        // Display score in top right corner
-        gc.setFill(Color.WHITE);
-        gc.setFont(new Font("Arial", 20));
-        gc.fillText("Score: " + score, canvas.getWidth() - 120, 25);
-
         if (levelComplete) {
             gc.setFill(Color.YELLOW);
             gc.setFont(new Font("Arial", 40));
             gc.fillText("Level Complete", canvas.getWidth() / 2 - 140, canvas.getHeight() / 2);
+        }
+        
+        // Added pause display
+        if (paused) {
+            gc.setFill(javafx.scene.paint.Color.YELLOW);
+            gc.setFont(new javafx.scene.text.Font("Arial", 40));
+            gc.fillText("PAUSED", canvas.getWidth() / 2 - 90, canvas.getHeight() / 2);
         }
         
         // Added a display for when the game is over
@@ -285,6 +312,22 @@ public class GameController {
             @Override
             public void handle(KeyEvent keyEvent) {
                 switch (keyEvent.getCode()) {
+
+                    // Added "ENTER" key to start the game
+                    case ENTER:
+                        if (startScreen) {
+                            startScreen = false; // leaves start screen
+                        }
+                        break;
+
+                    // Added "P" key for pause/unpause
+                    case P:
+                        if (startScreen) { // Can't pause on start screen
+                            break;
+                        }
+                        paused = !paused;
+                        break;
+                        
                     case LEFT:
                         player.setMoveX(-150 * powerUpManager.getSpeedMultiplier());
                         player.setMovingLeft(true);
@@ -308,6 +351,15 @@ public class GameController {
         canvas.setOnKeyReleased(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
+                // To ignore releases on start menu
+                if (startScreen) {
+                    return;
+                }
+                // To ignore releases while paused
+                if (paused) {
+                    return;
+                }
+                
                 switch (keyEvent.getCode()) {
                     case LEFT:
                         if (!player.isMovingRight()) {
@@ -372,7 +424,7 @@ public class GameController {
         invaderController.spawnInvaders(rows, cols);
         
         // Keep power-ups between levels
-        System.out.println("Level " + currentLevel + " - Score: " + score + ", Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()  
+        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()  
                            + ", Speed: " + String.format("%.0f%%", powerUpManager.getSpeedMultiplier() * 100) 
                            + ", Fire Rate: " + String.format("%.0f%%", powerUpManager.getFireRateMultiplier() * 100));
     }
