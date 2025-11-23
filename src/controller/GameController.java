@@ -278,30 +278,38 @@ public class GameController {
         if (gameOver) {
             gc.setFill(Color.RED);
             gc.setFont(new Font("Arial", 40));
-            gc.fillText("GAME OVER", canvas.getWidth() / 2 - 120, canvas.getHeight() / 2 - 20);
+            gc.fillText("GAME OVER", canvas.getWidth() / 2 - 120, 60);
 
             // Options for user to either continue or quit the game
             gc.setFill(Color.WHITE);
-            gc.setFont(new Font("Arial", 18));
-            gc.fillText("Press ENTER to Continue", canvas.getWidth() / 2 - 100, canvas.getHeight() / 2 + 20);
-            gc.fillText("Press ESC to Quit", canvas.getWidth() / 2 - 70, canvas.getHeight() / 2 + 50);
+            gc.setFont(new Font("Arial", 16));
+            gc.fillText("Press ENTER to Continue", canvas.getWidth() / 2 - 100, 100);
 
+            // Display current score centered
             gc.setFill(Color.WHITE);
-            gc.setFont(new Font("Arial", 40));
-            gc.fillText("SCORE: " + score, canvas.getWidth() / 2 - 50, canvas.getHeight() / 2 - 10);
+            gc.setFont(new Font("Arial", 32));
+            String scoreText = "SCORE: " + score;
+            gc.fillText(scoreText, canvas.getWidth() / 2 - 85, 145);
 
+            // Leaderboard section
             gc.setFont(new Font("Arial", 22));
-            gc.fillText("LEADERBOARD:", canvas.getWidth() / 2 - 90, canvas.getHeight() / 2 + 40);
+            gc.fillText("LEADERBOARD:", canvas.getWidth() / 2 - 90, 190);
 
-            int yoffset = 70;
+            // List leaderboard entries
+            gc.setFont(new Font("Arial", 18));
+            int yoffset = 220;
             int index = 1;
 
             for (LeaderboardEntry entry : leaderboardManager.getEntries()){
                 String line = index + ". " + entry.getName() + " - " + entry.getScore();
-                gc.fillText(line, canvas.getWidth() / 2 - 120, canvas.getHeight() / 2 +yoffset);
-                yoffset += 28;
+                gc.fillText(line, canvas.getWidth() / 2 - 100, yoffset);
+                yoffset += 30;
                 index++;
             }
+
+            // Quit option at bottom
+            gc.setFont(new Font("Arial", 16));
+            gc.fillText("Press ESC to Quit", canvas.getWidth() / 2 - 80, canvas.getHeight() - 30);
         }
     }
     
