@@ -36,7 +36,6 @@ public class GameController {
     private double LEVEL_COMPLETE_DELAY = 2.0;
     private boolean gameOver = false; // created gameOver field for when invaders get to the bottom of the screen
     private PowerUpManager powerUpManager;
-    private boolean invadersReachedPlayer = false; // Track if we've already checked for game over this wave
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
 
@@ -139,17 +138,24 @@ public class GameController {
             }
         }
         
-        // Added a check for if invaders have reached the players position
-        if (checkGameOver() && !invadersReachedPlayer) {
-            invadersReachedPlayer = true; // Mark that we've triggered this
-            // Check if shield can absorb the hit
-            if (player.takeDamage()) {
-                gameOver = true;
-                gameLoop.stop();
-                System.out.println("GAME OVER");
-                return;
-            } else {
-                System.out.println("Shield absorbed the hit! Keep fighting!");
+        // Check each invader individually for passing the player
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive() && !invader.hasPassedPlayer()) {
+                    if (invader.getY() + invader.getHeight() >= player.getY()) {
+                        invader.setHasPassedPlayer(true);
+                        // Try to use a shield
+                        if (player.takeDamage()) {
+                            // No shield available - game over
+                            gameOver = true;
+                            gameLoop.stop();
+                            System.out.println("GAME OVER");
+                            return;
+                        } else {
+                            System.out.println("Shield absorbed hit from invader! Shields remaining: " + powerUpManager.getShieldCharges());
+                        }
+                    }
+                }
             }
         }
 
@@ -352,7 +358,6 @@ public class GameController {
         levelComplete = false;
         levelCompleteTimer = 0;
         bulletList.clear();
-        invadersReachedPlayer = false; // Reset for new level
         
         int rows = 4 + (currentLevel - 1);
         int cols = 5 + (currentLevel - 1);
