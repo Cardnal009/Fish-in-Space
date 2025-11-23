@@ -38,6 +38,7 @@ public class GameController {
     private PowerUpManager powerUpManager;
     private boolean startScreen = true;   // created startScreen field
     private boolean paused = false; // added field for a pause and unpause feature
+    private int score = 0;
 
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
@@ -132,6 +133,7 @@ public class GameController {
                         invader.setAlive(false);
                         bullet.setAlive(false);
                         powerUpManager.registerKill();
+                        score += 5;
                     }
                 }
             }
@@ -171,6 +173,7 @@ public class GameController {
         if (checkAllInvadersDead()) {
             levelComplete = true;
             levelCompleteTimer = 0;
+            score += 100;
         }
     }
 
@@ -210,6 +213,11 @@ public class GameController {
                 }
             }
         }
+
+        // Display score in top right corner
+        gc.setFill(Color.WHITE);
+        gc.setFont(new Font("Arial", 20));
+        gc.fillText("Score: " + score, canvas.getWidth() - 120, 25);
 
         if (levelComplete) {
             gc.setFill(Color.YELLOW);
