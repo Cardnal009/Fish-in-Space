@@ -35,6 +35,7 @@ public class GameController {
     private double levelCompleteTimer = 0;
     private double LEVEL_COMPLETE_DELAY = 2.0;
     private boolean gameOver = false; // created gameOver field for when invaders get to the bottom of the screen
+    private PowerUpManager powerUpManager;
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
 
@@ -51,7 +52,8 @@ public class GameController {
         canvas.setFocusTraversable(true);
         setListeners();
         gc = canvas.getGraphicsContext2D();
-        player = new Player(canvas.getWidth() / 2 - 16, canvas.getHeight() - 32, 32, 32); // player width centered and subtract half the size to center, player height - 45 to leave white space from bottom, player size 32 by 32\
+        powerUpManager = new PowerUpManager();
+        player = new Player(canvas.getWidth() / 2 - 16, canvas.getHeight() - 32, 32, 32, powerUpManager); // player width centered and subtract half the size to center, player height - 45 to leave white space from bottom, player size 32 by 32\
         invaderController = new InvaderController();
         invaderController.spawnInvaders(4, 5);
         startGameLoop();
@@ -119,17 +121,41 @@ public class GameController {
                     if (bullet.intersects(invader) && invader.isAlive()) {
                         invader.setAlive(false);
                         bullet.setAlive(false);
+                        powerUpManager.registerKill();
                     }
                 }
             }
         }
         
-        // Added a check for if invaders have reached the players position
-        if (checkGameOver()) {
-            gameOver = true;
-            gameLoop.stop();
-            System.out.println("GAME OVER");
-            return;
+        // Kill invaders that have gone off the bottom of the screen
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive() && invader.getY() > HEIGHT) {
+                    invader.setAlive(false);
+                    System.out.println("Invader escaped off screen!");
+                }
+            }
+        }
+        
+        // Check each invader individually for passing the player
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive() && !invader.hasPassedPlayer()) {
+                    if (invader.getY() + invader.getHeight() >= player.getY()) {
+                        invader.setHasPassedPlayer(true);
+                        // Try to use a shield
+                        if (player.takeDamage()) {
+                            // No shield available - game over
+                            gameOver = true;
+                            gameLoop.stop();
+                            System.out.println("GAME OVER");
+                            return;
+                        } else {
+                            System.out.println("Shield absorbed hit from invader! Shields remaining: " + powerUpManager.getShieldCharges());
+                        }
+                    }
+                }
+            }
         }
 
         if (checkAllInvadersDead()) {
@@ -195,21 +221,34 @@ public class GameController {
     }
 
     private void fireProjectile(Entity entity) {
-        Bullet bullet = null;
         if (entity instanceof Player) {
-            if (System.currentTimeMillis() - player.getLastBullet() < 800) { // player can only fire ever .8 seconds
+            double cooldown = 800 * powerUpManager.getFireRateMultiplier();
+            if (System.currentTimeMillis() - player.getLastBullet() < cooldown) {
                 return;
             }
             player.setLastBullet(System.currentTimeMillis());
-            bullet = new Bullet(player.getX() + ((double) player.getWidth() / 2), player.getY(), 3, 8, null, entity);
-            bullet.setMoveY(-120);
+            
+            if (powerUpManager.hasDoubleShot()) {
+                // Fire two bullets side-by-side
+                Bullet bullet1 = new Bullet(player.getX() + ((double) player.getWidth() / 2) - 8, player.getY(), 3, 8, null, entity);
+                bullet1.setMoveY(-120);
+                bulletList.add(bullet1);
+                
+                Bullet bullet2 = new Bullet(player.getX() + ((double) player.getWidth() / 2) + 5, player.getY(), 3, 8, null, entity);
+                bullet2.setMoveY(-120);
+                bulletList.add(bullet2);
+            } else {
+                // Fire single bullet
+                Bullet bullet = new Bullet(player.getX() + ((double) player.getWidth() / 2), player.getY(), 3, 8, null, entity);
+                bullet.setMoveY(-120);
+                bulletList.add(bullet);
+            }
         }
         if (entity instanceof Invader) {
-            bullet = new Bullet(entity.getX() + ((double) player.getWidth() / 2), entity.getY(), 3, 8, null, entity);
+            Bullet bullet = new Bullet(entity.getX() + ((double) player.getWidth() / 2), entity.getY(), 3, 8, null, entity);
             bullet.setMoveY(+120);
+            bulletList.add(bullet);
         }
-
-        bulletList.add(bullet);
     }
 
     /**
@@ -238,12 +277,12 @@ public class GameController {
             public void handle(KeyEvent keyEvent) {
                 switch (keyEvent.getCode()) {
                     case LEFT:
-                        player.setMoveX(-150);
+                        player.setMoveX(-150 * powerUpManager.getSpeedMultiplier());
                         player.setMovingLeft(true);
                         break;
 
                     case RIGHT:
-                        player.setMoveX(150);
+                        player.setMoveX(150 * powerUpManager.getSpeedMultiplier());
                         player.setMovingRight(true);
                         break;
 
@@ -322,6 +361,9 @@ public class GameController {
         int rows = 4 + (currentLevel - 1);
         int cols = 5 + (currentLevel - 1);
         invaderController.spawnInvaders(rows, cols);
+        
+        // Keep power-ups between levels
+        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges());
     }
 
 }
