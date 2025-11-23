@@ -14,6 +14,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -39,6 +41,9 @@ public class GameController {
     private boolean startScreen = true;   // created startScreen field
     private boolean paused = false; // added field for a pause and unpause feature
     private int score = 0;
+    private MediaPlayer backgroundMusic;
+    private LeaderboardManager leaderboardManager = new LeaderboardManager();
+    private boolean nameEntered = false;
 
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
@@ -60,6 +65,18 @@ public class GameController {
         player = new Player(canvas.getWidth() / 2 - 16, canvas.getHeight() - 32, 32, 32, powerUpManager); // player width centered and subtract half the size to center, player height - 45 to leave white space from bottom, player size 32 by 32\
         invaderController = new InvaderController();
         invaderController.spawnInvaders(4, 5);
+        
+        // Initialize background music
+        try {
+            Media media = new Media(getClass().getResource("/assets/music/Space Invaders - Space Invaders.mp3").toString());
+            backgroundMusic = new MediaPlayer(media);
+            backgroundMusic.setCycleCount(MediaPlayer.INDEFINITE); // Loop indefinitely
+            backgroundMusic.setVolume(0.5); // Set volume to 50%
+            backgroundMusic.play();
+        } catch (Exception e) {
+            System.out.println("Could not load background music: " + e.getMessage());
+        }
+        
         startGameLoop();
     }
 
@@ -88,7 +105,7 @@ public class GameController {
      * @param delta time in seconds since the last update
      */
     private void update(double delta) {
-        
+
         if (startScreen) { // Doesn't update when on start screen
             return;
         }
@@ -98,7 +115,7 @@ public class GameController {
         if (gameOver) {
             return; // Doesn't update after game is over
         }
-        
+
         if (levelComplete) {
             levelCompleteTimer += delta;
             if (levelCompleteTimer >= LEVEL_COMPLETE_DELAY) {
@@ -138,7 +155,17 @@ public class GameController {
                 }
             }
         }
-        
+
+        // Kill invaders that have gone off the bottom of the screen
+        for (Invader[] invaderRow : invaderController.getInvaderList()) {
+            for (Invader invader : invaderRow) {
+                if (invader.isAlive() && invader.getY() > HEIGHT) {
+                    invader.setAlive(false);
+                    System.out.println("Invader escaped off screen!");
+                }
+            }
+        }
+
         // Check each invader individually for passing the player
         for (Invader[] invaderRow : invaderController.getInvaderList()) {
             for (Invader invader : invaderRow) {
@@ -150,7 +177,18 @@ public class GameController {
                             // No shield available - game over
                             gameOver = true;
                             gameLoop.stop();
-                            System.out.println("GAME OVER");
+
+                            if (!nameEntered){
+                                nameEntered = true;
+                                javafx.application.Platform.runLater(() ->{
+                                    javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("Player");
+                                    dialog.setTitle("Leaderboard");
+                                    dialog.setHeaderText("GAME OVER - FINAL SCORE:" + score);
+                                    dialog.setContentText("Enter Your Name:");
+                                    String name = dialog.showAndWait().orElse("Player");
+                                    leaderboardManager.addScore(name, score);
+                                });
+                            }
                             return;
                         } else {
                             System.out.println("Shield absorbed hit from invader! Shields remaining: " + powerUpManager.getShieldCharges());
@@ -201,7 +239,7 @@ public class GameController {
             gc.fillText("Arrows: Move  |  SPACE: Shoot  |  P: Pause", canvas.getWidth() / 2 - 105, canvas.getHeight() / 2 + 25);
             return;
         }
-        
+
         player.draw(gc);
         for (Bullet bullet : bulletList) {
             bullet.draw(gc);
@@ -228,14 +266,14 @@ public class GameController {
             gc.setFont(new Font("Arial", 40));
             gc.fillText("Level Complete", canvas.getWidth() / 2 - 140, canvas.getHeight() / 2);
         }
-        
+
         // Added pause display
         if (paused) {
             gc.setFill(javafx.scene.paint.Color.YELLOW);
             gc.setFont(new javafx.scene.text.Font("Arial", 40));
             gc.fillText("PAUSED", canvas.getWidth() / 2 - 90, canvas.getHeight() / 2);
         }
-        
+
         // Added a display for when the game is over
         if (gameOver) {
             gc.setFill(Color.RED);
@@ -247,6 +285,23 @@ public class GameController {
             gc.setFont(new Font("Arial", 18));
             gc.fillText("Press ENTER to Continue", canvas.getWidth() / 2 - 100, canvas.getHeight() / 2 + 20);
             gc.fillText("Press ESC to Quit", canvas.getWidth() / 2 - 70, canvas.getHeight() / 2 + 50);
+
+            gc.setFill(Color.WHITE);
+            gc.setFont(new Font("Arial", 40));
+            gc.fillText("SCORE: " + score, canvas.getWidth() / 2 - 50, canvas.getHeight() / 2 - 10);
+
+            gc.setFont(new Font("Arial", 22));
+            gc.fillText("LEADERBOARD:", canvas.getWidth() / 2 - 90, canvas.getHeight() / 2 + 40);
+
+            int yoffset = 70;
+            int index = 1;
+
+            for (LeaderboardEntry entry : leaderboardManager.getEntries()){
+                String line = index + ". " + entry.getName() + " - " + entry.getScore();
+                gc.fillText(line, canvas.getWidth() / 2 - 120, canvas.getHeight() / 2 +yoffset);
+                yoffset += 28;
+                index++;
+            }
         }
     }
     
@@ -254,24 +309,24 @@ public class GameController {
      * Scales and centers the game when the application is resized
      */
     public void scale() {
-            double rootW = anchorPane.getWidth();
-            double rootH = anchorPane.getHeight();
+        double rootW = anchorPane.getWidth();
+        double rootH = anchorPane.getHeight();
 
-            double scaleX = rootW / canvas.getWidth();
-            double scaleY = rootH / canvas.getHeight();
-            double scale = Math.min(scaleX, scaleY);
+        double scaleX = rootW / canvas.getWidth();
+        double scaleY = rootH / canvas.getHeight();
+        double scale = Math.min(scaleX, scaleY);
 
-            canvas.setScaleX(scale);
-            canvas.setScaleY(scale);
+        canvas.setScaleX(scale);
+        canvas.setScaleY(scale);
 
-            double scaledW = canvas.getWidth() * scale;
-            double scaledH = canvas.getHeight() * scale;
+        double scaledW = canvas.getWidth() * scale;
+        double scaledH = canvas.getHeight() * scale;
 
-            double canvasX = (scaledW - canvas.getWidth()) / 2;
-            double canvasY = (scaledH - canvas.getHeight()) / 2;
+        double canvasX = (scaledW - canvas.getWidth()) / 2;
+        double canvasY = (scaledH - canvas.getHeight()) / 2;
 
-            canvas.setLayoutX(canvasX + ((rootW - scaledW)) / 2);
-            canvas.setLayoutY(canvasY + ((rootH - scaledH)) / 2);
+        canvas.setLayoutX(canvasX + ((rootW - scaledW)) / 2);
+        canvas.setLayoutY(canvasY + ((rootH - scaledH)) / 2);
     }
 
     private void fireProjectile(Entity entity) {
@@ -281,13 +336,13 @@ public class GameController {
                 return;
             }
             player.setLastBullet(System.currentTimeMillis());
-            
+
             if (powerUpManager.hasDoubleShot()) {
                 // Fire two bullets side-by-side
                 Bullet bullet1 = new Bullet(player.getX() + ((double) player.getWidth() / 2) - 8, player.getY(), 3, 8, null, entity);
                 bullet1.setMoveY(-120);
                 bulletList.add(bullet1);
-                
+
                 Bullet bullet2 = new Bullet(player.getX() + ((double) player.getWidth() / 2) + 5, player.getY(), 3, 8, null, entity);
                 bullet2.setMoveY(-120);
                 bulletList.add(bullet2);
@@ -350,7 +405,7 @@ public class GameController {
                         }
                         paused = !paused;
                         break;
-                        
+
                     case LEFT:
                         player.setMoveX(-150 * powerUpManager.getSpeedMultiplier());
                         player.setMovingLeft(true);
@@ -385,7 +440,7 @@ public class GameController {
                 if (paused) {
                     return;
                 }
-                
+
                 switch (keyEvent.getCode()) {
                     case LEFT:
                         if (!player.isMovingRight()) {
@@ -454,15 +509,15 @@ public class GameController {
         levelComplete = false;
         levelCompleteTimer = 0;
         bulletList.clear();
-        
+
         int rows = 4 + (currentLevel - 1);
         int cols = 5 + (currentLevel - 1);
         invaderController.spawnInvaders(rows, cols);
-        
+
         // Keep power-ups between levels
-        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()  
-                           + ", Speed: " + String.format("%.0f%%", powerUpManager.getSpeedMultiplier() * 100) 
-                           + ", Fire Rate: " + String.format("%.0f%%", powerUpManager.getFireRateMultiplier() * 100));
+        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()
+                + ", Speed: " + String.format("%.0f%%", powerUpManager.getSpeedMultiplier() * 100)
+                + ", Fire Rate: " + String.format("%.0f%%", powerUpManager.getFireRateMultiplier() * 100));
     }
 
 }

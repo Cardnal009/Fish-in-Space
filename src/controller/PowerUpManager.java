@@ -1,32 +1,33 @@
+
 package controller;
 
 public class PowerUpManager {
-    
+
     private int killCount = 0;
     private int lastPowerUpAt = 0;
     private static final int KILLS_PER_POWERUP = 5;
-    
+
     // Power-up states
     private double fireRateMultiplier = 1.0; // 1.0 = normal, 0.4 = 60% reduction
     private double speedMultiplier = 1.0;
     private boolean hasDoubleShot = false;
     private int shieldCharges = 0;
-    
+
     // Constants
     private static final double FIRE_RATE_REDUCTION = 0.12; // 12% reduction per power-up
     private static final double MIN_FIRE_RATE = 0.4; // Cap at 60% reduction
     private static final double SPEED_INCREASE = 0.18; // 18% increase per power-up
     private static final double MAX_SPEED_MULTIPLIER = 2.5; // Cap speed increase
-    
+
     public void registerKill() {
         killCount++;
-        
+
         if (killCount - lastPowerUpAt >= KILLS_PER_POWERUP) {
             lastPowerUpAt = killCount;
             grantPowerUp();
         }
     }
-    
+
     private void grantPowerUp() {
         // Grant power-ups in order: Double Shot -> Rapid Fire -> Speed -> Shield (cycle)
         if (!hasDoubleShot) {
@@ -43,7 +44,7 @@ public class PowerUpManager {
             System.out.println("Power-Up: Shield! (Charges: " + shieldCharges + ")");
         }
     }
-    
+
     public boolean useShield() {
         if (shieldCharges > 0) {
             shieldCharges--;
@@ -52,7 +53,7 @@ public class PowerUpManager {
         }
         return false;
     }
-    
+
     public void reset() {
         killCount = 0;
         lastPowerUpAt = 0;
@@ -61,24 +62,24 @@ public class PowerUpManager {
         hasDoubleShot = false;
         shieldCharges = 0;
     }
-    
+
     // Getters
     public double getFireRateMultiplier() {
         return fireRateMultiplier;
     }
-    
+
     public double getSpeedMultiplier() {
         return speedMultiplier;
     }
-    
+
     public boolean hasDoubleShot() {
         return hasDoubleShot;
     }
-    
+
     public int getShieldCharges() {
         return shieldCharges;
     }
-    
+
     public int getKillCount() {
         return killCount;
     }
