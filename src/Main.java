@@ -2,6 +2,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 
@@ -15,6 +16,7 @@ public class Main extends Application {
             stage.setMinWidth(454);
             stage.setMinHeight(540);
             stage.setTitle("Fish in Space");
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/invaders/fishvader.png")));
             stage.setScene(scene);
             stage.show();
         }
