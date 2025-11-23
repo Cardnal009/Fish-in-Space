@@ -14,6 +14,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -39,6 +41,7 @@ public class GameController {
     private boolean startScreen = true;   // created startScreen field
     private boolean paused = false; // added field for a pause and unpause feature
     private int score = 0;
+    private MediaPlayer backgroundMusic;
     private LeaderboardManager leaderboardManager = new LeaderboardManager();
     private boolean nameEntered = false;
 
@@ -62,6 +65,18 @@ public class GameController {
         player = new Player(canvas.getWidth() / 2 - 16, canvas.getHeight() - 32, 32, 32, powerUpManager); // player width centered and subtract half the size to center, player height - 45 to leave white space from bottom, player size 32 by 32\
         invaderController = new InvaderController();
         invaderController.spawnInvaders(4, 5);
+        
+        // Initialize background music
+        try {
+            Media media = new Media(getClass().getResource("/assets/music/Space Invaders - Space Invaders.mp3").toString());
+            backgroundMusic = new MediaPlayer(media);
+            backgroundMusic.setCycleCount(MediaPlayer.INDEFINITE); // Loop indefinitely
+            backgroundMusic.setVolume(0.5); // Set volume to 50%
+            backgroundMusic.play();
+        } catch (Exception e) {
+            System.out.println("Could not load background music: " + e.getMessage());
+        }
+        
         startGameLoop();
     }
 
