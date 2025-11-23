@@ -36,6 +36,7 @@ public class GameController {
     private double LEVEL_COMPLETE_DELAY = 2.0;
     private boolean gameOver = false; // created gameOver field for when invaders get to the bottom of the screen
     private PowerUpManager powerUpManager;
+    private int score = 0;
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
 
@@ -123,6 +124,7 @@ public class GameController {
                         invader.setAlive(false);
                         bullet.setAlive(false);
                         powerUpManager.registerKill();
+                        score += 5;
                     }
                 }
             }
@@ -162,6 +164,7 @@ public class GameController {
         if (checkAllInvadersDead()) {
             levelComplete = true;
             levelCompleteTimer = 0;
+            score += 100;
         }
     }
 
@@ -182,6 +185,11 @@ public class GameController {
                 }
             }
         }
+
+        // Display score in top right corner
+        gc.setFill(Color.WHITE);
+        gc.setFont(new Font("Arial", 20));
+        gc.fillText("Score: " + score, canvas.getWidth() - 120, 25);
 
         if (levelComplete) {
             gc.setFill(Color.YELLOW);
@@ -364,7 +372,7 @@ public class GameController {
         invaderController.spawnInvaders(rows, cols);
         
         // Keep power-ups between levels
-        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()  
+        System.out.println("Level " + currentLevel + " - Score: " + score + ", Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()  
                            + ", Speed: " + String.format("%.0f%%", powerUpManager.getSpeedMultiplier() * 100) 
                            + ", Fire Rate: " + String.format("%.0f%%", powerUpManager.getFireRateMultiplier() * 100));
     }
