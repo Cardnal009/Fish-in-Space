@@ -1,5 +1,6 @@
 package controller;
 
+import entities.Boss;
 import entities.Bullet;
 import entities.Entity;
 import entities.Invader;
@@ -44,6 +45,9 @@ public class GameController {
     private MediaPlayer backgroundMusic;
     private LeaderboardManager leaderboardManager = new LeaderboardManager();
     private boolean nameEntered = false;
+    private Boss boss = null;
+    private boolean isBossLevel = false;
+    private boolean gameWon = false; // Track if player won by defeating boss
 
 
     private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
@@ -112,8 +116,8 @@ public class GameController {
         if (paused) { // Doesn't update when paused
             return;
         }
-        if (gameOver) {
-            return; // Doesn't update after game is over
+        if (gameOver || gameWon) {
+            return; // Doesn't update after game is over or won
         }
 
         if (levelComplete) {
@@ -121,6 +125,83 @@ public class GameController {
             if (levelCompleteTimer >= LEVEL_COMPLETE_DELAY) {
                 startNewLevel();
             }
+            return;
+        }
+
+        // Boss level logic
+        if (isBossLevel && boss != null) {
+            boss.update(delta);
+            
+            // Boss shooting
+            if (boss.canShoot()) {
+                // Fire 3 bullets in a spread pattern
+                fireBossProjectile(boss, -20);
+                fireBossProjectile(boss, 0);
+                fireBossProjectile(boss, 20);
+            }
+            
+            // Update bullets and check player collisions
+            player.update(delta);
+            ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
+            for (Bullet bullet : bulletList) {
+                if (!bullet.isAlive()) {
+                    bulletsToRemove.add(bullet);
+                } else {
+                    bullet.update(delta);
+                    
+                    // Check boss bullet hitting player
+                    if (bullet.getOwner() instanceof Boss && bullet.intersects(player)) {
+                        if (player.takeDamage()) {
+                            gameOver = true;
+                            gameLoop.stop();
+                            if (!nameEntered){
+                                nameEntered = true;
+                                javafx.application.Platform.runLater(() ->{
+                                    javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("Player");
+                                    dialog.setTitle("Leaderboard");
+                                    dialog.setHeaderText("GAME OVER - FINAL SCORE:" + score);
+                                    dialog.setContentText("Enter Your Name:");
+                                    String name = dialog.showAndWait().orElse("Player");
+                                    leaderboardManager.addScore(name, score);
+                                });
+                            }
+                            return;
+                        } else {
+                            System.out.println("Shield absorbed boss bullet! Shields remaining: " + powerUpManager.getShieldCharges());
+                        }
+                        bullet.setAlive(false);
+                    }
+                    
+                    // Check player bullet hitting boss
+                    if (bullet.getOwner() instanceof Player && bullet.intersects(boss)) {
+                        boss.takeDamage(1);
+                        bullet.setAlive(false);
+                        score += 10;
+                    }
+                }
+            }
+            bulletList.removeAll(bulletsToRemove);
+            
+            // Check if boss defeated
+            if (boss.isDefeated()) {
+                gameWon = true;
+                gameLoop.stop();
+                score += 500;
+                System.out.println("BOSS DEFEATED! YOU WIN! +500 bonus points");
+                
+                if (!nameEntered){
+                    nameEntered = true;
+                    javafx.application.Platform.runLater(() ->{
+                        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("Player");
+                        dialog.setTitle("Victory!");
+                        dialog.setHeaderText("YOU WIN - FINAL SCORE: " + score);
+                        dialog.setContentText("Enter Your Name:");
+                        String name = dialog.showAndWait().orElse("Player");
+                        leaderboardManager.addScore(name, score);
+                    });
+                }
+            }
+            
             return;
         }
 
@@ -244,10 +325,16 @@ public class GameController {
         for (Bullet bullet : bulletList) {
             bullet.draw(gc);
         }
-        for (Invader[] invaderRow : invaderController.getInvaderList()) {
-            for (Invader invader : invaderRow) {
-                if (invader.isAlive()) {
-                    invader.draw(gc);
+        
+        // Draw boss or regular invaders
+        if (isBossLevel && boss != null) {
+            boss.draw(gc);
+        } else {
+            for (Invader[] invaderRow : invaderController.getInvaderList()) {
+                for (Invader invader : invaderRow) {
+                    if (invader.isAlive()) {
+                        invader.draw(gc);
+                    }
                 }
             }
         }
@@ -256,6 +343,13 @@ public class GameController {
         gc.setFill(Color.WHITE);
         gc.setFont(new Font("Arial", 20));
         gc.fillText("Score: " + score, canvas.getWidth() - 120, 25);
+        
+        // Boss level indicator
+        if (isBossLevel) {
+            gc.setFill(Color.RED);
+            gc.setFont(new Font("Arial", 24));
+            gc.fillText("BOSS FIGHT!", canvas.getWidth() / 2 - 70, 30);
+        }
 
         // Draw shield icons in bottom left corner
         powerUpManager.drawShields(gc, canvas.getHeight());
@@ -309,6 +403,41 @@ public class GameController {
 
             // Quit option at bottom
             gc.setFont(new Font("Arial", 16));
+            gc.fillText("Press ESC to Quit", canvas.getWidth() / 2 - 80, canvas.getHeight() - 30);
+        }
+        
+        // You Win screen
+        if (gameWon) {
+            gc.setFill(Color.GOLD);
+            gc.setFont(new Font("Arial", 48));
+            gc.fillText("YOU WIN!", canvas.getWidth() / 2 - 110, 60);
+
+            // Display final score centered
+            gc.setFill(Color.WHITE);
+            gc.setFont(new Font("Arial", 32));
+            String scoreText = "FINAL SCORE: " + score;
+            gc.fillText(scoreText, canvas.getWidth() / 2 - 130, 130);
+
+            // Leaderboard section
+            gc.setFont(new Font("Arial", 22));
+            gc.fillText("LEADERBOARD:", canvas.getWidth() / 2 - 90, 180);
+
+            // List leaderboard entries
+            gc.setFont(new Font("Arial", 18));
+            int yoffset = 210;
+            int index = 1;
+
+            for (LeaderboardEntry entry : leaderboardManager.getEntries()){
+                String line = index + ". " + entry.getName() + " - " + entry.getScore();
+                gc.fillText(line, canvas.getWidth() / 2 - 100, yoffset);
+                yoffset += 30;
+                index++;
+            }
+
+            // Play again option
+            gc.setFill(Color.WHITE);
+            gc.setFont(new Font("Arial", 16));
+            gc.fillText("Press ENTER to Play Again", canvas.getWidth() / 2 - 110, canvas.getHeight() - 60);
             gc.fillText("Press ESC to Quit", canvas.getWidth() / 2 - 80, canvas.getHeight() - 30);
         }
     }
@@ -367,6 +496,17 @@ public class GameController {
             bulletList.add(bullet);
         }
     }
+    
+    private void fireBossProjectile(Boss boss, double angleOffset) {
+        Bullet bullet = new Bullet(
+            boss.getX() + boss.getWidth() / 2 - 1.5,
+            boss.getY() + boss.getHeight(),
+            3, 8, null, boss
+        );
+        bullet.setMoveY(150);
+        bullet.setMoveX(angleOffset * 2);
+        bulletList.add(bullet);
+    }
 
     /**
      * Set up listeners for scaling and key events
@@ -400,8 +540,8 @@ public class GameController {
                             startScreen = false; // leaves start screen
                             break;
                         }
-                        if (gameOver) {
-                            restartGame(); // "ENTER" restarts game at gameover
+                        if (gameOver || gameWon) {
+                            restartGame(); // "ENTER" restarts game at gameover or victory
                             break;
                         }
                         break;
@@ -429,7 +569,7 @@ public class GameController {
                         break;
 
                     case ESCAPE:
-                        if (gameOver) {
+                        if (gameOver || gameWon) {
                             System.exit(0);
                         }
                         break;
@@ -491,6 +631,7 @@ public class GameController {
 
         // Reinitialize game to start-of-game state
         gameOver = false;
+        gameWon = false;
         paused = false;
         startScreen = false;
         currentLevel = 1;
@@ -499,6 +640,8 @@ public class GameController {
         score = 0;
         bulletList.clear();
         invaderUpdateTimer = 0;
+        isBossLevel = false;
+        boss = null;
 
         // Reset player and powerups
         powerUpManager = new PowerUpManager();
@@ -518,12 +661,22 @@ public class GameController {
         levelCompleteTimer = 0;
         bulletList.clear();
 
-        int rows = 4 + (currentLevel - 1);
-        int cols = 5 + (currentLevel - 1);
-        invaderController.spawnInvaders(rows, cols);
+        // Boss fight on level 6
+        if (currentLevel == 6) {
+            isBossLevel = true;
+            int bossHealth = 50; // Boss health
+            boss = new Boss(canvas.getWidth() / 2 - 40, 50, 80, 80, bossHealth);
+            System.out.println("BOSS LEVEL " + currentLevel + "! Boss Health: " + bossHealth);
+        } else {
+            isBossLevel = false;
+            boss = null;
+            int rows = 4 + (currentLevel - 1);
+            int cols = 5 + (currentLevel - 1);
+            invaderController.spawnInvaders(rows, cols);
+        }
 
         // Keep power-ups between levels
-        System.out.println("Level " + currentLevel + " - Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()
+        System.out.println("Level " + currentLevel + " - Score: " + score + ", Kills: " + powerUpManager.getKillCount() + ", Shields: " + powerUpManager.getShieldCharges()
                 + ", Speed: " + String.format("%.0f%%", powerUpManager.getSpeedMultiplier() * 100)
                 + ", Fire Rate: " + String.format("%.0f%%", powerUpManager.getFireRateMultiplier() * 100));
     }

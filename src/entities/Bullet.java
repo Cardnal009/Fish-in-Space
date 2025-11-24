@@ -9,6 +9,7 @@ import javafx.scene.paint.Color;
 public class Bullet extends Entity {
 
     private double moveY; // used to move Y value of bullet in update
+    private double moveX = 0; // horizontal movement for spread patterns
     private Image bulletImage;
     private Entity owner;
 
@@ -35,6 +36,7 @@ public class Bullet extends Entity {
     @Override
     public void update(double delta) {
         setY(getY() + (moveY * delta));
+        setX(getX() + (moveX * delta));
         if (getY() <= 0) {
             setAlive(false);
         }
@@ -51,5 +53,17 @@ public class Bullet extends Entity {
 
     public void setMoveY(double moveY) {
         this.moveY = moveY;
+    }
+    
+    public double getMoveX() {
+        return moveX;
+    }
+
+    public void setMoveX(double moveX) {
+        this.moveX = moveX;
+    }
+    
+    public Entity getOwner() {
+        return owner;
     }
 }
