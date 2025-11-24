@@ -410,7 +410,7 @@ public class GameController {
         if (gameWon) {
             gc.setFill(Color.GOLD);
             gc.setFont(new Font("Arial", 48));
-            gc.fillText("YOU WIN!", canvas.getWidth() / 2 - 110, 60);
+            gc.fillText("YOU WIN!", canvas.getWidth() / 2 - 120, 80);
 
             // Display final score centered
             gc.setFill(Color.WHITE);
