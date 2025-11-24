@@ -4,6 +4,9 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
+/**
+ * Represents the level boss with movement, shooting behavior, and health.
+ */
 public class Boss extends Entity {
     
     private int health;
@@ -13,12 +16,26 @@ public class Boss extends Entity {
     private int direction = 1; // 1 = right, -1 = left
     private double moveSpeed = 50;
     
+    /**
+     * Creates a boss entity.
+     *
+     * @param x      starting x-position
+     * @param y      starting y-position
+     * @param width  boss width
+     * @param height boss height
+     * @param health starting health
+     */
     public Boss(double x, double y, int width, int height, int health) {
         super(x, y, width, height, new Image("assets/invaders/fishvader.png"));
         this.health = health;
         this.maxHealth = health;
     }
-    
+
+    /**
+     * Updates boss movement and shooting cooldown
+     *
+     * @param delta time in seconds since last update
+     */
     @Override
     public void update(double delta) {
         // Move horizontally
@@ -38,12 +55,22 @@ public class Boss extends Entity {
         // Update shoot cooldown
         shootCooldown -= delta;
     }
-    
+
+    /**
+     * Applies damage to the boss
+     *
+     * @param damage amount of damage taken
+     */
     public void takeDamage(int damage) {
         health -= damage;
         if (health < 0) health = 0;
     }
-    
+
+    /**
+     * Checks if the boss can shoot based on cooldown
+     *
+     * @return true if boss is allowed to shoot
+     */
     public boolean canShoot() {
         if (shootCooldown <= 0) {
             shootCooldown = SHOOT_INTERVAL;
@@ -51,7 +78,12 @@ public class Boss extends Entity {
         }
         return false;
     }
-    
+
+   /**
+     * Draws the boss rotated downward and its health bar
+     *
+     * @param gc graphics context to draw to
+     */
     @Override
     public void draw(GraphicsContext gc) {
         // Save the current graphics state
@@ -92,15 +124,24 @@ public class Boss extends Entity {
         gc.setLineWidth(1);
         gc.strokeRect(barX, barY, barWidth, barHeight);
     }
-    
+
+    /**
+     * @return true if the boss has zero or less health
+     */
     public boolean isDefeated() {
         return health <= 0;
     }
-    
+
+    /**
+     * @return current health
+     */
     public int getHealth() {
         return health;
     }
-    
+
+     /**
+     * @return maximum health
+     */
     public int getMaxHealth() {
         return maxHealth;
     }
