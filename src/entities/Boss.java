@@ -9,7 +9,7 @@ public class Boss extends Entity {
     private int health;
     private int maxHealth;
     private double shootCooldown = 0;
-    private static final double SHOOT_INTERVAL = 1.5; // Shoots every 1.5 seconds
+    private static final double SHOOT_INTERVAL = 1; // Shoots every second
     private int direction = 1; // 1 = right, -1 = left
     private double moveSpeed = 50;
     
