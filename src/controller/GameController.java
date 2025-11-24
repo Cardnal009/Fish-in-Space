@@ -24,6 +24,10 @@ import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 
+/**
+ * Main controller for the Fish in Space game.
+ * Handles initialization, game loop, updating logic, rendering, and input.
+ */
 public class GameController {
 
     public static final int WIDTH = 440; // canvas width
@@ -52,7 +56,7 @@ public class GameController {
     private boolean gameWon = false; // Track if player won by defeating boss
 
 
-    private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
+    private final Image background = new Image("assets/background.png"); // background image for game
 
     @FXML
     public AnchorPane anchorPane; // anchorpane used to hold canvas and keep size
@@ -61,7 +65,8 @@ public class GameController {
     public Canvas canvas; // game area - sits on anchorpane
 
     /**
-     * Setting up everything required for the game to function
+     * Initializes the game controller.
+     * Sets up the canvas, listeners, player, invaders, music, and game loop.
      */
     public void initialize() {
         canvas.setFocusTraversable(true); // allows listeners to work and move objects/shapes
@@ -226,7 +231,7 @@ public class GameController {
             invaderController.updateAll(); // moves the invaders once the appropriate time has passed
         }
 
-
+         // Bullets hitting invaders
         for (Bullet bullet : bulletList) {
             for (Invader[] invaderRow : invaderController.getInvaderList()) {
                 for (Invader invader : invaderRow) {
@@ -357,7 +362,7 @@ public class GameController {
         // Draw shield icons in bottom left corner
         powerUpManager.drawShields(gc, canvas.getHeight());
 
-
+        // Level complete display
         if (levelComplete) {
             gc.setFill(Color.YELLOW);
             gc.setFont(new Font("Arial", 40));
@@ -469,6 +474,12 @@ public class GameController {
         canvas.setLayoutY(canvasY + ((rootH - scaledH)) / 2);
     }
 
+    /**
+     * Fires a projectile from the entity
+     * Handles both player bullets and invader bullets.
+     *
+     * @param entity firing bullets
+     */
     private void fireProjectile(Entity entity) {
         if (entity instanceof Player) {
             double cooldown = 800 * powerUpManager.getFireRateMultiplier();
@@ -500,6 +511,12 @@ public class GameController {
         }
     }
     
+    /**
+     * Fires a single boss projectile with a horizontal offset
+     *
+     * @param boss the boss firing the projectile
+     * @param angleOffset horizontal offset for the bullet path
+     */
     private void fireBossProjectile(Boss boss, double angleOffset) {
         Bullet bullet = new Bullet(
             boss.getX() + boss.getWidth() / 2 - 1.5,
@@ -617,7 +634,12 @@ public class GameController {
         });
 
     }
-
+    
+    /**
+     * Checks whether all invaders are dead.
+     *
+     * @return true if no invader is alive and false otherwise
+     */
     private boolean checkAllInvadersDead() {
         for (Invader[] invaderRow : invaderController.getInvaderList()) {
             for (Invader invader : invaderRow) {
@@ -657,7 +679,11 @@ public class GameController {
         // Resume game from beginning
         gameLoop.start();
     }
-
+    
+    /**
+     * Starts a new level after the level complete delay
+     * Handles both regular levels and boss level setup
+     */
     private void startNewLevel() {
         currentLevel++;
         levelComplete = false;
