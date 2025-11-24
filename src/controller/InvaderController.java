@@ -4,7 +4,9 @@ package controller;
 import entities.Invader;
 import javafx.scene.image.Image;
 
-
+/**
+ * Controls spawning, positioning, and movement of all invaders in the game
+ */
 public class InvaderController {
 
     private Invader[][] invaderList;
@@ -16,7 +18,13 @@ public class InvaderController {
     private enum Direction {
         LEFT, RIGHT
     }
-
+    
+    /**
+     * Creates and positions invaders in rows and columns
+     *
+     * @param rows number of rows of invaders
+     * @param cols number of columns of invaders
+     */
     public void spawnInvaders(int rows, int cols) {
         this.rowsNum = rows;
         this.colsNum = cols;
@@ -28,7 +36,12 @@ public class InvaderController {
             }
         }
     }
-
+    
+    /**
+     * Gets the index of the leftmost column that still has a living invader
+     *
+     * @return column index or -1 if none alive
+     */
     private int getLeftmostColumn() {
         for (int column = 0; column < colsNum; column++) {
             for (int row = 0; row < rowsNum; row++) {
@@ -39,6 +52,11 @@ public class InvaderController {
         return -1; // if - 1 game is won
     }
 
+    /**
+     * Gets the index of the rightmost column that still has a living invader
+     *
+     * @return column index or -1 if none alive
+     */
     private int getRightMostColumn() {
         for (int column = colsNum-1; column >= 0; column--) {
             for (int row = 0; row < rowsNum; row++) {
@@ -49,6 +67,9 @@ public class InvaderController {
         return -1; // if - 1 game is won
     }
 
+    /**
+     * Updates all invaders, moves them left or right and down when hitting borders of game
+     */
     public void updateAll() {
         if (getLeftmostColumn() == -1 || getRightMostColumn() == -1) { // if every column is destroyed stop updateAll method
             return;
@@ -97,11 +118,19 @@ public class InvaderController {
             }
         }
     }
-
+    
+    /**
+     * @return total number of invaders including dead ones
+     */
     public int getTotalInvaders() {
         return rowsNum * colsNum;
     }
-
+    
+    /**
+     * Counts how many invaders are still alive
+     *
+     * @return number of alive invaders
+     */
     public int countAlive() {
         int alive = 0;
         for (Invader[] invaderRow : invaderList) {
@@ -112,7 +141,13 @@ public class InvaderController {
         }
         return alive;
     }
-
+    
+     /**
+     * Calculates how fast invaders should update,
+     * speeding up as fewer invaders remain
+     *
+     * @return update interval in seconds
+     */
     public double calculateUpdateTime() {
         int invadersAlive = countAlive();
         int totalInvaders = getTotalInvaders();
