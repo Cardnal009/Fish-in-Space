@@ -4,6 +4,9 @@ package controller;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
+/**
+ * Manages power-up progression, shield usage, and stat boosts for the player.
+ */
 public class PowerUpManager {
 
     private int killCount = 0;
@@ -25,7 +28,12 @@ public class PowerUpManager {
 
     private final Image shields = new Image("assets/shields.png");
 
-    // Created shield images that will pop up everytime the power up is used
+    /**
+     * Draws shield icons in the bottom-left corner of the screen.
+     *
+     * @param gc graphics context to draw on
+     * @param canvasHeight height of the game canvas
+     */
     public void drawShields(GraphicsContext gc, double canvasHeight) {
         double iconSize = 24;
 
@@ -38,7 +46,10 @@ public class PowerUpManager {
             gc.drawImage(shields, x, startY, iconSize, iconSize);
         }
     }
-
+    
+    /**
+     * Records a kill and grants power-ups at certain thresholds.
+     */
     public void registerKill() {
         killCount++;
 
@@ -47,7 +58,10 @@ public class PowerUpManager {
             grantPowerUp();
         }
     }
-
+    
+    /**
+     * Grants the next power-up in the sequence
+     */
     private void grantPowerUp() {
         // Grant power-ups in order: Double Shot -> Rapid Fire -> Speed -> Shield (cycle)
         if (!hasDoubleShot) {
@@ -67,7 +81,12 @@ public class PowerUpManager {
             }
         }
     }
-
+    
+    /**
+     * Uses one shield charge if available
+     *
+     * @return true if a shield was used, false if none available
+     */
     public boolean useShield() {
         if (shieldCharges > 0) {
             shieldCharges--;
@@ -76,7 +95,10 @@ public class PowerUpManager {
         }
         return false;
     }
-
+    
+    /**
+     * Resets all power-up progress and stats
+     */
     public void reset() {
         killCount = 0;
         lastPowerUpAt = 0;
@@ -87,22 +109,37 @@ public class PowerUpManager {
     }
 
     // Getters
+    /**
+     * @return current fire rate multiplier
+     */
     public double getFireRateMultiplier() {
         return fireRateMultiplier;
     }
-
+    
+    /**
+     * @return current speed multiplier
+     */
     public double getSpeedMultiplier() {
         return speedMultiplier;
     }
-
+    
+    /**
+     * @return true if the player has double-shot power-up
+     */
     public boolean hasDoubleShot() {
         return hasDoubleShot;
     }
 
+    /**
+     * @return number of shield charges
+     */
     public int getShieldCharges() {
         return shieldCharges;
     }
 
+    /**
+     * @return total number of kills recorded
+     */
     public int getKillCount() {
         return killCount;
     }
