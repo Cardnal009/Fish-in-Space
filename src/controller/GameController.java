@@ -90,7 +90,7 @@ public class GameController {
             @Override
             public void handle(long now) {
                 if (lastTime > 0) {
-                    double delta = (double) (now - lastTime) / 1000000000; // convert to seconds (should be 1 frame per second 60fps)
+                    double delta = (double) (now - lastTime) / 1000000000; // convert to seconds (AnimationTimer target is 60 frames per second)
                     update(delta);   // update game logic
                     render();   // draw everything
                 }
