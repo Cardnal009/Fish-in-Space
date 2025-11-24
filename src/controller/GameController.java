@@ -6,12 +6,14 @@ import entities.Entity;
 import entities.Invader;
 import entities.Player;
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -22,6 +24,10 @@ import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 
+/**
+ * Main controller for the Fish in Space game.
+ * Handles initialization, game loop, updating logic, rendering, and input.
+ */
 public class GameController {
 
     public static final int WIDTH = 440; // canvas width
@@ -30,11 +36,11 @@ public class GameController {
     private GraphicsContext gc; // GraphicsContext used for rendering
     private AnimationTimer gameLoop; // AnimationTimer used for main game loop
     private Player player; // the player
-    private double invaderUpdateTimer = 0;
-    private InvaderController invaderController;
-    ArrayList<Bullet> bulletList = new ArrayList<>();
+    private double invaderUpdateTimer = 0; // time used to update invaders movement
+    private InvaderController invaderController; // placeholder for InvaderController
+    ArrayList<Bullet> bulletList = new ArrayList<>(); // list of bullets
     private int currentLevel = 1;
-    private boolean levelComplete = false;
+    private boolean levelComplete = false; // placeholder to check if level is complete
     private double levelCompleteTimer = 0;
     private double LEVEL_COMPLETE_DELAY = 2.0;
     private boolean gameOver = false; // created gameOver field for when invaders get to the bottom of the screen
@@ -50,25 +56,26 @@ public class GameController {
     private boolean gameWon = false; // Track if player won by defeating boss
 
 
-    private final Image background = new Image("assets/background.png"); // more backgrounds can be used or added just add to resource folder and change name
+    private final Image background = new Image("assets/background.png"); // background image for game
 
     @FXML
-    public AnchorPane anchorPane;
+    public AnchorPane anchorPane; // anchorpane used to hold canvas and keep size
 
     @FXML
-    public Canvas canvas;
+    public Canvas canvas; // game area - sits on anchorpane
 
     /**
-     * Setting up everything required for the game to function
+     * Initializes the game controller.
+     * Sets up the canvas, listeners, player, invaders, music, and game loop.
      */
     public void initialize() {
-        canvas.setFocusTraversable(true);
+        canvas.setFocusTraversable(true); // allows listeners to work and move objects/shapes
         setListeners();
-        gc = canvas.getGraphicsContext2D();
-        powerUpManager = new PowerUpManager();
+        gc = canvas.getGraphicsContext2D(); // initialize graphics
+        powerUpManager = new PowerUpManager(); //initialize powerups
         player = new Player(canvas.getWidth() / 2 - 16, canvas.getHeight() - 32, 32, 32, powerUpManager); // player width centered and subtract half the size to center, player height - 45 to leave white space from bottom, player size 32 by 32\
-        invaderController = new InvaderController();
-        invaderController.spawnInvaders(4, 5);
+        invaderController = new InvaderController(); // initialize InvaderController
+        invaderController.spawnInvaders(4, 5); //spawns set number of invaders rows/cols
         
         // Initialize background music
         try {
@@ -81,7 +88,7 @@ public class GameController {
             System.out.println("Could not load background music: " + e.getMessage());
         }
         
-        startGameLoop();
+        startGameLoop(); // start game
     }
 
     /**
@@ -89,19 +96,17 @@ public class GameController {
      * calls update and render method once per frame
      */
     private void startGameLoop() {
-        gameLoop = new AnimationTimer() {
-            long lastTime = System.nanoTime();
+        gameLoop = new AnimationTimer() { // initialize gameLoop
+            long lastTime = System.nanoTime(); // initialize last time as current time in nanoseconds
             @Override
             public void handle(long now) {
-                if (lastTime > 0) {
-                    double delta = (double) (now - lastTime) / 1000000000; // convert to seconds (AnimationTimer target is 60 frames per second)
-                    update(delta);   // update game logic
-                    render();   // draw everything
-                }
-                lastTime = now;
+                double delta = (double) (now - lastTime) / 1000000000; // delta time converted to seconds (AnimationTimer target is 60 frames per second)
+                update(delta);   // update game logic
+                render();   // draw everything
+                lastTime = now; // set last time to current time
             }
         };
-        gameLoop.start();
+        gameLoop.start(); // starts gameloop
     }
 
     /**
@@ -121,7 +126,7 @@ public class GameController {
         }
 
         if (levelComplete) {
-            levelCompleteTimer += delta;
+            levelCompleteTimer += delta; // timer adding roughly .016 per game tick (60 fps)
             if (levelCompleteTimer >= LEVEL_COMPLETE_DELAY) {
                 startNewLevel();
             }
@@ -141,23 +146,26 @@ public class GameController {
             }
             
             // Update bullets and check player collisions
-            player.update(delta);
-            ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
-            for (Bullet bullet : bulletList) {
-                if (!bullet.isAlive()) {
-                    bulletsToRemove.add(bullet);
+            player.update(delta); // allows player to move smoothly (60fps)
+            ArrayList<Bullet> bulletsToRemove = new ArrayList<>(); // placeholder to get rid of fired bullets
+            for (Bullet bullet : bulletList) { // loop through bullets
+                if (!bullet.isAlive()) { // check if not alive
+                    bulletsToRemove.add(bullet); // add bullets to remove to list
                 } else {
-                    bullet.update(delta);
+                    bullet.update(delta); // update bullet with game speed
                     
                     // Check boss bullet hitting player
                     if (bullet.getOwner() instanceof Boss && bullet.intersects(player)) {
                         if (player.takeDamage()) {
-                            gameOver = true;
-                            gameLoop.stop();
+                            gameOver = true; // end game
+                            gameLoop.stop(); // stop game loop
                             if (!nameEntered){
                                 nameEntered = true;
-                                javafx.application.Platform.runLater(() ->{
-                                    javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("Player");
+                                /*
+                                prompt for player name and add to score
+                                 */
+                                Platform.runLater(() ->{
+                                    TextInputDialog dialog = new TextInputDialog("Player");
                                     dialog.setTitle("Leaderboard");
                                     dialog.setHeaderText("GAME OVER - FINAL SCORE:" + score);
                                     dialog.setContentText("Enter Your Name:");
@@ -167,9 +175,9 @@ public class GameController {
                             }
                             return;
                         } else {
-                            System.out.println("Shield absorbed boss bullet! Shields remaining: " + powerUpManager.getShieldCharges());
+                            System.out.println("Shield absorbed boss bullet! Shields remaining: " + powerUpManager.getShieldCharges()); // print remaining shields
                         }
-                        bullet.setAlive(false);
+                        bullet.setAlive(false); // destroy bullet
                     }
                     
                     // Check player bullet hitting boss
@@ -180,7 +188,7 @@ public class GameController {
                     }
                 }
             }
-            bulletList.removeAll(bulletsToRemove);
+            bulletList.removeAll(bulletsToRemove); // remove bullets to remove from list
             
             // Check if boss defeated
             if (boss.isDefeated()) {
@@ -191,8 +199,8 @@ public class GameController {
                 
                 if (!nameEntered){
                     nameEntered = true;
-                    javafx.application.Platform.runLater(() ->{
-                        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("Player");
+                    Platform.runLater(() ->{
+                        TextInputDialog dialog = new TextInputDialog("Player");
                         dialog.setTitle("Victory!");
                         dialog.setHeaderText("YOU WIN - FINAL SCORE: " + score);
                         dialog.setContentText("Enter Your Name:");
@@ -205,25 +213,25 @@ public class GameController {
             return;
         }
 
-        player.update(delta);
-        ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
-        for (Bullet bullet : bulletList) {
-            if (!bullet.isAlive()) {
-                bulletsToRemove.add(bullet);
+        player.update(delta); // update player with each tick of the game - allows for smooth movement
+        ArrayList<Bullet> bulletsToRemove = new ArrayList<>(); // temp bullet list
+        for (Bullet bullet : bulletList) { // loop through list
+            if (!bullet.isAlive()) { // if not alive
+                bulletsToRemove.add(bullet); // add the bullet to the list
             } else {
-                bullet.update(delta);
+                bullet.update(delta); //update bullet with speed
             }
         }
-        bulletList.removeAll(bulletsToRemove);
-        invaderUpdateTimer += delta;
+        bulletList.removeAll(bulletsToRemove); // remove all the dead bullets from the list
+        invaderUpdateTimer += delta; // timer adding roughly .016 per game tick (60 fps)
 
-        double stepTimer = invaderController.calculateUpdateTime();
+        double stepTimer = invaderController.calculateUpdateTime(); // calculator time for invader to "step" left or right
         if (invaderUpdateTimer > stepTimer) {
             invaderUpdateTimer -= stepTimer;
-            invaderController.updateAll();
+            invaderController.updateAll(); // moves the invaders once the appropriate time has passed
         }
 
-
+         // Bullets hitting invaders
         for (Bullet bullet : bulletList) {
             for (Invader[] invaderRow : invaderController.getInvaderList()) {
                 for (Invader invader : invaderRow) {
@@ -261,8 +269,8 @@ public class GameController {
 
                             if (!nameEntered){
                                 nameEntered = true;
-                                javafx.application.Platform.runLater(() ->{
-                                    javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("Player");
+                                Platform.runLater(() ->{
+                                    TextInputDialog dialog = new TextInputDialog("Player");
                                     dialog.setTitle("Leaderboard");
                                     dialog.setHeaderText("GAME OVER - FINAL SCORE:" + score);
                                     dialog.setContentText("Enter Your Name:");
@@ -305,18 +313,18 @@ public class GameController {
 
         // Displays start screen
         if (startScreen) {
-            gc.setFill(javafx.scene.paint.Color.WHITE);
+            gc.setFill(Color.WHITE);
 
             // Title (wasn't sure what we were naming it tbh feel free to change)
-            gc.setFont(new javafx.scene.text.Font("Arial", 48));
+            gc.setFont(new Font("Arial", 48));
             gc.fillText("FISH IN SPACE", canvas.getWidth() / 2 - 170, canvas.getHeight() / 2 - 60);
 
             // Press "ENTER" to start game
-            gc.setFont(new javafx.scene.text.Font("Arial", 24));
+            gc.setFont(new Font("Arial", 24));
             gc.fillText("Press ENTER to Start", canvas.getWidth() / 2 - 125, canvas.getHeight() / 2 - 10);
 
             // Instructions
-            gc.setFont(new javafx.scene.text.Font("Arial", 10));
+            gc.setFont(new Font("Arial", 10));
             gc.fillText("Arrows: Move  |  SPACE: Shoot  |  P: Pause", canvas.getWidth() / 2 - 105, canvas.getHeight() / 2 + 25);
             return;
         }
@@ -354,7 +362,7 @@ public class GameController {
         // Draw shield icons in bottom left corner
         powerUpManager.drawShields(gc, canvas.getHeight());
 
-
+        // Level complete display
         if (levelComplete) {
             gc.setFill(Color.YELLOW);
             gc.setFont(new Font("Arial", 40));
@@ -363,8 +371,8 @@ public class GameController {
 
         // Added pause display
         if (paused) {
-            gc.setFill(javafx.scene.paint.Color.YELLOW);
-            gc.setFont(new javafx.scene.text.Font("Arial", 40));
+            gc.setFill(Color.YELLOW);
+            gc.setFont(new Font("Arial", 40));
             gc.fillText("PAUSED", canvas.getWidth() / 2 - 90, canvas.getHeight() / 2);
         }
 
@@ -466,6 +474,12 @@ public class GameController {
         canvas.setLayoutY(canvasY + ((rootH - scaledH)) / 2);
     }
 
+    /**
+     * Fires a projectile from the entity
+     * Handles both player bullets and invader bullets.
+     *
+     * @param entity firing bullets
+     */
     private void fireProjectile(Entity entity) {
         if (entity instanceof Player) {
             double cooldown = 800 * powerUpManager.getFireRateMultiplier();
@@ -497,6 +511,12 @@ public class GameController {
         }
     }
     
+    /**
+     * Fires a single boss projectile with a horizontal offset
+     *
+     * @param boss the boss firing the projectile
+     * @param angleOffset horizontal offset for the bullet path
+     */
     private void fireBossProjectile(Boss boss, double angleOffset) {
         Bullet bullet = new Bullet(
             boss.getX() + boss.getWidth() / 2 - 1.5,
@@ -614,7 +634,12 @@ public class GameController {
         });
 
     }
-
+    
+    /**
+     * Checks whether all invaders are dead.
+     *
+     * @return true if no invader is alive and false otherwise
+     */
     private boolean checkAllInvadersDead() {
         for (Invader[] invaderRow : invaderController.getInvaderList()) {
             for (Invader invader : invaderRow) {
@@ -654,7 +679,11 @@ public class GameController {
         // Resume game from beginning
         gameLoop.start();
     }
-
+    
+    /**
+     * Starts a new level after the level complete delay
+     * Handles both regular levels and boss level setup
+     */
     private void startNewLevel() {
         currentLevel++;
         levelComplete = false;

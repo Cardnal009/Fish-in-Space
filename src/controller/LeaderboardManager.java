@@ -3,14 +3,25 @@ import  java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Manages leaderboard entries, loading from and saving to a file
+ */
 public class LeaderboardManager {
     private static final String FILE_NAME = "leaderboard.txt";
     private static final int MAX_ENTRIES = 5;
 
     private final ArrayList<LeaderboardEntry> entries = new ArrayList<>();
+
+    /**
+     * Creates a leaderboard manager and loads existing entries
+     */
     public LeaderboardManager(){
         load();
     }
+
+    /**
+     * Loads leaderboard entries from the file
+     */
     private void load(){
         entries.clear();
         File file = new File(FILE_NAME);
@@ -29,6 +40,9 @@ public class LeaderboardManager {
         } catch (Exception ignored) {}
     }
 
+     /**
+     * Saves all leaderboard entries to the file
+     */
     private void save() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_NAME))) {
             for (LeaderboardEntry entry : entries) {
@@ -37,6 +51,12 @@ public class LeaderboardManager {
         } catch (Exception ignored) {}
     }
 
+    /**
+     * Adds a score entry to the leaderboard
+     *
+     * @param name  player name
+     * @param score final score earned by the player
+     */
     public void addScore(String name, int score) {
         entries.add(new LeaderboardEntry(name, score));
         entries.sort((a, b) -> b.getScore() - a.getScore());
@@ -45,6 +65,11 @@ public class LeaderboardManager {
         save();
     }
 
+    /**
+     * Gets all leaderboard entries
+     *
+     * @return list of leaderboard entries
+     */
     public ArrayList<LeaderboardEntry> getEntries() {
         return entries;
     }
